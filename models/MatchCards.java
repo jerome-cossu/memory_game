@@ -43,7 +43,7 @@ public class MatchCards {
 
     MatchCards() {
         setupCards();
-        suffleCards();
+        shuffleCards();
     }
 
     void setupCards() {
@@ -63,7 +63,7 @@ public class MatchCards {
         Image cardBackImg = new ImageIcon(getClass().getResource("./img/back.jpg")).getImage();
         cardBackImageIcon = new ImageIcon(cardBackImg.getScaledInstance(cardWidth, cardHeight, java.awt.Image.SCALE_SMOOTH));
     }
-    void suffleCards() {
+    void shuffleCards() {
         // suffle the cards in cardSet
         System.out.println(cardSet);
         for (int i = 0; i < cardSet.size(); i++) {
