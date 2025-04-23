@@ -53,6 +53,10 @@ public class MatchCards {
 
     int errorCount = 0;
     ArrayList<JButton> board;
+    Timer hideCardTimer;
+    boolean gameReady = false;
+    JButton cardSelected;
+    JButton card2Selected;
 
     MatchCards() {
         setupCards();
@@ -83,6 +87,37 @@ public class MatchCards {
             tile.setOpaque(true);
             tile.setIcon(cardSet.get(i).cardImageIcon);
             tile.setFocusable(false);
+            tile.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    if (!gameReady) {
+                        return;
+                    }
+                    JButton tile = (JButton) e.getSource();
+                    if (tile.getIcon() == cardBackImageIcon){
+                        if (cardSelected == null){
+                            cardSelected = tile;
+                            int index = board.indexOf(cardSelected);
+                            cardSelected.setIcon(cardSet.get(index).cardImageIcon);
+                        }
+                        else if (card2Selected == null){
+                            card2Selected = tile;
+                            int index = board.indexOf(card2Selected);
+                            card2Selected.setIcon(cardSet.get(index).cardImageIcon);
+                            
+                            if (cardSelected.getIcon() != card2Selected.getIcon()){
+                                errorCount += 1;
+                                textLabel.setText("Error : " + Integer.toString(errorCount));
+                                hideCardTimer.start();
+                            }
+                            else {
+                                cardSelected = null;
+                                card2Selected = null;
+                            }
+                        }
+                    }
+                }
+            });
             board.add(tile);
             boardPanel.add(tile);
         }
@@ -93,11 +128,43 @@ public class MatchCards {
         restartGameButton.setText("Restart Game");
         restartGameButton.setPreferredSize(new Dimension(boardWidth, 30));
         restartGameButton.setFocusable(false);
+        restartGameButton.setEnabled(false);
+        restartGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!gameReady) {
+                    return;
+                }
+                // reset game
+                gameReady = false;
+                restartGameButton.setEnabled(false);
+                cardSelected = null;
+                card2Selected = null;
+                shuffleCards();
+                for(int i = 0; i < board.size(); i++){
+                    board.get(i).setIcon(cardSet.get(i).cardImageIcon);
+                }
+                errorCount = 0;
+                textLabel.setText("Error : " + Integer.toString(errorCount));
+                hideCardTimer.start();
+            }
+            
+        });
         restartGamePanel.add(restartGameButton);
         frame.add(restartGamePanel, BorderLayout.SOUTH);
 
         frame.pack();
         frame.setVisible(true);
+
+        // start game
+        hideCardTimer = new Timer(1500, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hideCards();
+            }
+        });
+        hideCardTimer.setRepeats(false);
+        hideCardTimer.start();
 
     }
 
@@ -120,14 +187,30 @@ public class MatchCards {
     }
     void shuffleCards() {
         // suffle the cards in cardSet
-        System.out.println(cardSet);
         for (int i = 0; i < cardSet.size(); i++) {
             int j = (int) (Math.random() * cardSet.size());
             Card temp = cardSet.get(i);
             cardSet.set(i, cardSet.get(j));
             cardSet.set(j, temp);
         }
-        System.out.println(cardSet);
+    }
+    void hideCards() {
+        // hide 2 cards that are not selected if it's not the same
+        if (gameReady && cardSelected != null && card2Selected != null) {
+            cardSelected.setIcon(cardBackImageIcon);
+            cardSelected = null;
+            card2Selected.setIcon(cardBackImageIcon);
+            card2Selected = null;
+        }
+        // hide all the cards
+        else {       
+            for (int i = 0; i < board.size(); i++) {
+                board.get(i).setIcon(cardBackImageIcon);
+            }
+            gameReady = true;
+            restartGameButton.setEnabled(true);
+        }
+        
     }
     
 }
